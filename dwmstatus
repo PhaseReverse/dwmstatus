@@ -19,15 +19,17 @@ while true; do
 	hdmiStatus=$(xrandr | grep ' connected' | grep -i hdmi | awk '{print $1}')
 	hdmiactive=$(xrandr --listactivemonitors | grep -i $hdmiStatus)
 
-	if [ ! -z $hdmiStatus ] && [ -z $hdmiactive ] && [ $prompted -eq 0 ]
+	if [ ! -z "$hdmiStatus" ] && [ -z "$hdmiactive" ] && [ $prompted -eq 0 ]
 	then
 	    /home/hell/dmenu-crafts/hdmimonitor/run
 	    prompted=1
 	    
 	fi
-	if [ -z $hdmiStatus ]
+	if [ -z "$hdmiStatus" ]
 	then
 	    prompted=0
+	    hdmimonitor=$(xrandr | grep -i hdmi | awk '{print $1}')
+	    xrandr --output eDP1 --auto --primary --output $hdmimonitor --off
 	fi
 
 	hdmiactive=$(xrandr --listactivemonitors | grep -i $hdmiStatus)
