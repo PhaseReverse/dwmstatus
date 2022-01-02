@@ -6,7 +6,7 @@ while true; do
 	battery="$(cat /sys/class/power_supply/BAT0/capacity)]"
 	temp="[temp $(sensors | grep -A 2 "ISA adapter" | grep temp1 | awk '{print $2 }')]"
 	batteryStatus="$(cat /sys/class/power_supply/BAT0/status)"
-	date="[$(date +"%a %D %H:%M")]"
+	date="[$(date +"%a %d/%m/%y %H:%M:%S")]"
 
 	bluetooth=$(bluetoothctl show | grep -i powered | awk '{print $2}')
 	if [ $bluetooth == "yes" ]
