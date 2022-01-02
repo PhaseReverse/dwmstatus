@@ -1,0 +1,82 @@
+#!/bin/bash
+prompted=1  #prompts at the beginning in .xininitrc hence 1
+
+while true; do
+
+	battery="$(cat /sys/class/power_supply/BAT0/capacity)]"
+	temp="[temp $(sensors | grep -A 2 "ISA adapter" | grep temp1 | awk '{print $2 }')]"
+	batteryStatus="$(cat /sys/class/power_supply/BAT0/status)"
+	date="[$(date +"%a %D %H:%M")]"
+
+	bluetooth=$(bluetoothctl show | grep -i powered | awk '{print $2}')
+	if [ $bluetooth == "yes" ]
+	then
+	    bluetooth="[bluetooth]  "
+	else
+	    bluetooth=""
+	fi
+	
+	hdmiStatus=$(xrandr | grep ' connected' | grep -i hdmi | awk '{print $1}')
+	hdmiactive=$(xrandr --listactivemonitors | grep -i $hdmiStatus)
+
+	if [ ! -z $hdmiStatus ] && [ -z $hdmiactive ] && [ $prompted -eq 0 ]
+	then
+	    /home/hell/dmenu-crafts/hdmimonitor/run
+	    prompted=1
+	    
+	fi
+	if [ -z $hdmiStatus ]
+	then
+	    prompted=0
+	fi
+
+	hdmiactive=$(xrandr --listactivemonitors | grep -i $hdmiStatus)
+		
+	if [ ! -z "$hdmiactive" ]
+	then
+	    hdmiStatus="[hdmi]  "
+	    #  prompted=0
+	else
+	    hdmiStatus="[hdmi off]  "
+	fi
+
+	
+	ram="[mem $(free -h | awk '/^Mem:/ {print $3}')]"
+	
+	ssd="[hdd $(df / -h | grep / | awk '{print $3}')]"
+
+	network="  [$(ip addr | grep -B 2 "inet " | grep "BROADCAST" | awk '{print $2}' | rev | cut -c 2- | rev)]"
+
+	if [ "$network" = "  []" ];then
+	    network=""
+	fi
+	
+	volumeSink=" $(pacmd list-sinks | grep -e "index" -e "device.description" |grep -A 1 "* index" | grep \= | cut -f2 -d\") "	
+	volume="[vol $(amixer sget Master | grep 'Right:' | awk -F'[][]' '{ print $2 }')"
+	volumeStatus="$(amixer get Master | grep "\[on\]")"
+
+	if [ "$volumeStatus" = "" ];then
+	    volumeStatus=" off]"
+	else
+	    volumeStatus=" on]"
+	fi
+	
+	CURRENT_SOURCE="$(pactl info | grep "Default Source" | cut -f3 -d" ")"
+	micLevel="[mic $(amixer get Capture | grep 'Right:' | awk -F'[][]' '{ print $2 }')"
+	micStatus="$(pactl list sources | grep -A 10 $CURRENT_SOURCE | grep "Mute:" | awk '{print $2}')"
+	if [ "$micStatus" = "no" ];then
+		micStatus=" on]"
+	else
+		micStatus=" off]"
+	fi
+
+	if [ "$batteryStatus" = "Discharging" ];then
+		batteryStatus="[bat "
+	else
+		batteryStatus="[chgr "
+	fi
+	
+	status="$bluetooth$hdmiStatus$temp$network  $ssd  $ram  $volume$volumeSink$volumeStatus  $micLevel$micStatus  $batteryStatus$battery  $date"
+	xsetroot -name "$status"
+	sleep 1
+done &
