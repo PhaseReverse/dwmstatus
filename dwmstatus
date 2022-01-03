@@ -21,7 +21,7 @@ while true; do
 
 	if [ ! -z "$hdmiStatus" ] && [ -z "$hdmiactive" ] && [ $prompted -eq 0 ]
 	then
-	    /home/hell/dmenu-crafts/hdmimonitor/run
+	    ~/hdmimonitor/run #using https://github.com/PhaseReverse/monitor-layout
 	    prompted=1
 	    
 	fi
